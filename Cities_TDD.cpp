@@ -1,0 +1,100 @@
+#include <cassert>
+#include "CitiesDistance.h"
+#include <fstream>
+
+int main() {
+    // Test 1: City stores fields
+    City c("test", 10.0, 20.0);
+    assert(c.name == "test");
+    assert(c.lat == 10.0);
+    assert(c.lon == 20.0);
+
+    // Test 2: distance() works
+    City a("A", 0, 0);
+    City b("B", 3, 4);
+    assert(distance(a, b) == 5.0);
+
+    {
+        // Test 3: loading cities from a file
+        std::ofstream f("test_cities.txt");
+        f << "alpha 1 2\n";
+        f << "beta 3 4\n";
+        f.close();
+
+        auto cities = loadCities("test_cities.txt");
+
+        assert(cities.size() == 2);
+        assert(cities[0].name == "alpha");
+        assert(cities[0].lat == 1);
+        assert(cities[0].lon == 2);
+
+        assert(cities[1].name == "beta");
+        assert(cities[1].lat == 3);
+        assert(cities[1].lon == 4);
+    }
+
+    {
+        // Test 4: findClosest() finds the nearest pair
+        std::vector<City> cities = {
+            City("A", 0, 0),
+            City("B", 3, 4),   // distance 5
+            City("C", 1, 1)    // distance sqrt(2) from A
+        };
+
+        CityPair result = findClosest(cities);
+
+        assert((result.a.name == "A" && result.b.name == "C") ||
+            (result.a.name == "C" && result.b.name == "A"));
+
+        assert(result.distance == std::sqrt(2.0));
+    }
+
+    {
+        // Test 5: findFarthest() finds the most distant pair
+        std::vector<City> cities = {
+            City("A", 0, 0),
+            City("B", 3, 4),   // distance 5
+            City("C", 10, 10)  // farthest from A (distance sqrt(200))
+        };
+
+        CityPair result = findFarthest(cities);
+
+        // The farthest pair should be A and C
+        assert((result.a.name == "A" && result.b.name == "C") ||
+            (result.a.name == "C" && result.b.name == "A"));
+
+        assert(result.distance == std::sqrt(200.0));
+    }
+
+    {
+        // Test 6: Integration test for loading + closest + farthest
+        std::ofstream f("test_cities2.txt");
+        f << "A 0 0\n";
+        f << "B 3 4\n";     // distance 5
+        f << "C 1 1\n";     // distance sqrt(2) from A
+        f << "D 10 10\n";   // farthest from A
+        f.close();
+
+        auto cities = loadCities("test_cities2.txt");
+
+        // Closest pair should be A and C
+        CityPair closest = findClosest(cities);
+        assert(
+            (closest.a.name == "A" && closest.b.name == "C") ||
+            (closest.a.name == "C" && closest.b.name == "A")
+        );
+        assert(closest.distance == std::sqrt(2.0));
+
+        // Farthest pair should be A and D
+        CityPair farthest = findFarthest(cities);
+        assert(
+            (farthest.a.name == "A" && farthest.b.name == "D") ||
+            (farthest.a.name == "D" && farthest.b.name == "A")
+        );
+        assert(farthest.distance == std::sqrt(200.0));
+    }
+
+
+
+    return 0;
+}
