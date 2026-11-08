@@ -3,7 +3,7 @@
 #include "CitiesDistance.h"
 
 int main() {
-    std::string filename = "data/cities10k.txt";
+    std::string filename = "data/cities100k.txt";
 
     // Load cities
     auto cities = loadCities(filename);
